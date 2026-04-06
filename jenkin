@@ -1,0 +1,33 @@
+pipeline {
+    agent any
+    environment {
+        DOCKER_IMAGE = "khushmeen-kaur/labcat:latest"
+    }
+    stages {
+        stage('Clone Repository') {
+            steps {
+                git 'https://github.com/khushmeen-kaur/labcat.git'
+            }
+        }
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    // Building the image locally
+                    sh "docker build -t ${DOCKER_IMAGE} ."
+                }
+            }
+        }
+        stage('K8s Health Check') {
+            steps {
+                // Ensure Kubernetes context is set to Docker Desktop
+                sh "kubectl cluster-info"
+            }
+        }
+        stage('Deploy to Kubernetes') {
+            steps {
+                // Applying the manifest files from the repo
+                sh "kubectl apply -f deployment.yaml"
+            }
+        }
+    }
+}
